@@ -1,0 +1,2962 @@
+openapi: 3.0.3
+info:
+  title: Loan as a Service
+  description: "This document defines the RESTful endpoints provided by Inswitch.\n\n# Introduction\nThe information from the data included in the LaaS can be used in several different applications, for example expense reports, cash flow models, risk analysis and more.  \n\n\n# Authentication\nInswitch offers two forms of authentication:\n  - API Key\n  - OAuth2\nOAuth2 - an open protocol to allow secure authorization in a simple\nand standard method from web, mobile and desktop applications.\n<SecurityDefinitions />\n"
+  version: "1.0"
+  x-logo:
+    url: https://inswitch.com/wp-content/uploads/LaaS-API.png
+    altText: Inswitch LaaS logo
+servers:
+  - url: //swagger.io
+    description: Default server
+  - url: //swagger.io/sandbox
+    description: Sandbox server
+  - url: https://laas:9090
+    description: This url points to the LaaS API V1.0 Simulator.
+tags:
+  - name: Products
+  - name: Loan Requests
+    description: |
+      Smart Lending is the next generation of lending services that provides an attractive and highly rewarding experience that drives commitment, loyalty and a path to advance financial services.
+  - name: Catalogs
+
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Get loan products
+      description: This endpoint returns all the loan products defined by the company.
+      operationId: loanProducts
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that states the date and time when a message was generated. It is used for basic message integrity checks, to ensure the request is not delayed. Note that, the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: entityId
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Represents a list of loan products .
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/productsResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+
+  /products/{productId}/simulations:
+    post:
+      tags:
+        - Products
+      summary: Simulate a loan
+      description: This method returns a possible financing option based on the parameters given.
+      operationId: simulateLoan
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: productId
+          in: path
+          description: Path variable to specify the product identifier.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: integer
+      requestBody:
+        description: Loan Proposal
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/product_productId_body"
+        required: true
+      responses:
+        "200":
+          description: Represents a simulate loan.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/simulateLoanResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+
+  /loanrequests:
+    post:
+      tags:
+        - Loan Requests
+      summary: Create loan request.
+      description: This endpoint allows creating  new lending proposals
+      operationId: getProposals
+      parameters:
+        - name: withAdditionals
+          in: query
+          description: Query variable to enable the extended offer.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: boolean
+            default: false
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: X-CorrelationID
+          in: header
+          description: Header parameter to uniquely identify the request. Must be supplied as an UUID.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+            type: string
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: entityId
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        description: Loan Request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/loanRequest_body"
+        required: true
+      responses:
+        "201":
+          description: Represents a proposal response.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/loanRequestPostResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+
+    get:
+      tags:
+        - Loan Requests
+      summary: Get loan requests
+      description: This endpoint returns all the loan products defined for the company.
+      operationId: getLoanRequests
+      parameters:
+        - description: Supports pagination.
+          in: query
+          name: limit
+          required: false
+          schema:
+            description: Supports pagination.
+            type: string
+        - description: Supports pagination. This value will indicate the cursor position
+            from where to retrieve the record set. For example, a limit of 50 and an
+            offset of 10, will return records from 11 to 60
+          in: query
+          name: offset
+          required: false
+          schema:
+            description: Supports pagination. This value will indicate the cursor position
+              from where to retrieve the record set. For example, a limit of 50 and
+              an offset of 10, will return records from 11 to 60
+            type: string
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: entityId
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/LoanRequestStatusEnum"
+      responses:
+        "200":
+          description: Represents a loan products list.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/loanRequestsResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+
+  /loanrequests/{loanRequestId}:
+    get:
+      tags:
+        - Loan Requests
+      summary: Get loan request by loanRequestId
+      operationId: loanRequestStatus
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: loanRequestId
+          in: path
+          description: Identifies the loan request.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Represents a loan request status object.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/loanRequestItemResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+
+    put:
+      tags:
+        - Loan Requests
+      summary: Update a loan request by loanRequestId
+      description: This endpoint allows accept a specific lending proposal
+      operationId: putLoanRequest
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: X-CorrelationID
+          in: header
+          description: Header parameter to uniquely identify the request. Must be supplied as an UUID.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+            type: string
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: loanRequestId
+          in: path
+          description: Identifies the loan request.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        description: Confirm proposal data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/loanRequest_body"
+        required: true
+      responses:
+        "200":
+          description: Represents a transaction response.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/loanRequestPostResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+
+  /loanrequests/{loanRequestId}/status:
+    put:
+      tags:
+        - Loan Requests
+      summary: Change the loan request status by loanRequestId
+      description: This endpoint allows accept a specific lending proposal
+      operationId: acceptProposal
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: X-CorrelationID
+          in: header
+          description: Header parameter to uniquely identify the request. Must be supplied as an UUID.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+            type: string
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: loanRequestId
+          in: path
+          description: Identifies the loan request.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        description: Confirm proposal data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/loanRequestStatusBody"
+        required: true
+      responses:
+        "204":
+          description: No content response.
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+
+  /loanrequests/{loanRequestId}/documents:
+    put:
+      tags:
+        - Loan Requests
+      summary: Upload documents for a loan request by loanRequestId
+      description: |
+        This endpoint is used to upload an entity's proof documentation to be
+        used for identity or address verification.
+      operationId: documents
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: X-CorrelationID
+          in: header
+          description: Header parameter to uniquely identify the request. Must be supplied as an UUID.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+            type: string
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: loanRequestId
+          $ref: "#/components/parameters/loanRequestId"
+      requestBody:
+        description: Represents the request body of a document.
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/documents_body"
+        required: true
+      responses:
+        "204":
+          description: Successful upload document response.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+
+  /loanrequests/{loanRequestId}/installments/{installmentId}/payments:
+    put:
+      tags:
+        - Loan Requests
+      summary: Pay an installment by loanId and installmentId
+      description: This endpoint allows accept a specific lending proposal
+      operationId: payInstallment
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: X-CorrelationID
+          in: header
+          description: Header parameter to uniquely identify the request. Must be supplied as an UUID.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+            type: string
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: loanRequestId
+          $ref: "#/components/parameters/loanRequestId"
+        - name: installmentId    
+          $ref:  "#/components/parameters/installmentId"
+        - name: entityId
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        description: Confirm proposal data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/pay_body"
+      responses:
+        "200":
+          description: Represents the pay installment response.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+  /loanrequests/{loanRequestId}/installments/{installmentId}/reversals:
+    put:
+      tags:
+        - Loan Requests
+      summary: Reverse the payment installment by installmentId
+      description: This method allows to cancel a transaction.
+      operationId: revertInstallment
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: loanRequestId
+          $ref: "#/components/parameters/loanRequestId"
+        - name: installmentId    
+          $ref:  "#/components/parameters/installmentId"
+      requestBody:
+        description: Confirm proposal data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/pay_body"
+      responses:
+        "200":
+          description: Represents a successful reversal.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+  /catalogs/maritalstatus:
+    get:
+      tags:
+        - Catalogs
+      summary: Get marital status options.
+      description: This method allows to get all allowed marital status ids.
+      operationId: maritalStatus
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+      responses:
+        "200":
+          description: Represents a successful reversal.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/maritalStatusResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+  /catalogs/propertytypes:
+    get:
+      tags:
+        - Catalogs
+      summary: Get property types options.
+      description: This method allows to get all allowed property types.
+      operationId: propertyTypes
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+      responses:
+        "200":
+          description: Represents a successful reversal.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/propertyTypesResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+  /catalogs/studies:
+    get:
+      tags:
+        - Catalogs
+      summary: Get available studies.
+      description: This method allows to get all allowed studies.
+      operationId: studies
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+      responses:
+        "200":
+          description: Represents a successful reversal.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/studiesResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+  /catalogs/employmentrelationships:
+    get:
+      tags:
+        - Catalogs
+      summary: Get employment relationships.
+      description: This method allows to get all allowed employment relationships.
+      operationId: employmentrelationships
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+      responses:
+        "200":
+          description: Represents a successful reversal.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/employmentRelationshipsResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+  /catalogs/departments:
+    get:
+      tags:
+        - Catalogs
+      summary: Get available departments.
+      description: This method allows to get all country departments.
+      operationId: departments
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+      responses:
+        "200":
+          description: Represents a successful reversal.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/departmentsResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+  /catalogs/departments/{departmentId}/locations:
+    get:
+      tags:
+        - Catalogs
+      summary: Get available locations for a given department.
+      description: This method allows to get all department locations.
+      operationId: locations
+      parameters:
+        - name: X-Date
+          in: header
+          description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: date-time
+        - name: apikey
+          in: header
+          description: It is used to send the pre-shared client's API key to the server.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-User-Bearer
+          in: header
+          description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: X-Channel
+          in: header
+          description: String containing the channel used to originate the request. For example USSD, Web, App.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            maxLength: 256
+            type: string
+        - name: departmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Represents a successful reversal.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/locationsResponse"
+        "400":
+          description: Represents an error caused by a business rule violation.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+        "500":
+          description: Represents an error caused by a general server-side issue.
+          headers:
+            X-Date:
+              $ref: "#/components/headers/X-Date"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/genericObject"
+components:
+  schemas:
+    productsResponse:
+      type: object
+      properties:
+        identifier:
+          type: number
+          description: "Product identifier"
+        name: 
+          type: string
+          description: "Product name"
+        commercialname:
+          type: string
+          description: "Product commercial name"
+           
+        expirationDate:
+          type: string
+          description: "ExpirationDate"
+          
+        currency:
+          type: number
+          description: "Product currency"
+
+        paymentCurrency: 
+          type: number
+          description: "Product PaymentCurrency"
+
+        amount: 
+          type: number
+          description: "Product amount"
+
+        currencyTypeId:
+          type: string
+          description: "Product currencyTypeId"
+
+        termTypeId:
+          type: number
+          description: "Product termtypeId"
+
+        installments:
+          type: number
+          description: "Product installments" 
+
+
+
+        suggestedInstallments:
+          type: number
+          description: "Product sugestedinstallments"
+
+        totalInstallment:
+          type: number
+          description: "Product totalinstallments"
+
+        minInstallment:
+          type: number
+          description: "Product mininstallments"
+
+        maxInstallment: 
+          type: number
+          description: "Product maxinstallments"
+
+        minAmount: 
+          type: number
+          description: "Product minAmount"
+
+        maxAmount: 
+          type: number
+          description: "Product installments"
+
+        effectiveAnnualRate: 
+          type: number
+          description: "Product effectiveAnnualRate"
+
+        percentageDelay: 
+          type: number
+          description: "Product percentageDelay"
+
+        taxes:
+          type: number
+          description: "Product installments"
+
+        irpfDeduction:
+          type: number
+          description: "Product irpfDeduction"
+
+        grantCost: 
+          type: number
+          description: "Product grantCost"
+
+        managementCost: 
+          type: number
+          description: "Product managementCost"
+
+        commissionPercentage:
+          type: number
+          description: "Product commissionPercentage"
+
+        transactionCost: 
+          type: number
+          description: "Product transactionCost"
+
+        forecast: 
+          type: number
+          description: "Product forecast"
+
+        applicantCommission: 
+          type: number
+          description: "Product applicantCommission"
+
+        providerCommission: 
+          type: number
+          description: "Product providerCommission"
+        interests: 
+          type: number
+          description: "Product interests"
+
+        compProfile:
+          type: number
+          description: "Product compProfile"
+
+        uniqueAmount:
+          type: number
+          description: "Product uniqueAmount"
+
+
+        firstExpirationDate: 
+            type: string
+            description: "Product firstExpirationDate"
+
+        incomePercentage:
+            type: string
+            description: "Product firstExpirationDate" 
+        weeks:
+          type: number
+          description: "weeks"
+        day:
+          type: number
+          description: "day"
+
+        createdDate:
+          type: Date
+          description: "Created date"
+
+        updatedDate: 
+          type: number
+          description: "Udated Date"
+# editing
+
+    familyIncome: 
+          type: number
+          description: "day"
+    useSimulator:
+          type: number
+          description: "day"
+    maxDocumentId:
+          type: string
+          description: "day"
+
+    guarantorAdmitted:
+          type: number
+          description: "day"
+
+    withExpiration:
+          type: number
+          description: "day"
+    additionalInfo:
+          type: string
+          description: "day"
+    balanceRequired:
+          type: number
+          description: "day"
+    useCreditLine:
+          type: number
+          description: "day"
+    workingCalendar:
+          type: number
+          description: "day"
+
+    weekends:
+          type: number
+          description: "day"
+    limitIncome:
+          type: number
+          description: "day"
+
+    limitMaxInstallment:
+          type: number
+          description: "day"
+
+    multipleCurrency:
+          type: string
+          description: "day"
+    stringCode: 
+          type: string
+          description: "day"
+
+    isPublic:
+          type: number
+          description: "day"
+    validatePhone: 
+          type: number
+          description: "day"
+    businessRef: 
+          type: string
+          description: "day"
+    stepAmount: 
+          type: number
+          description: "day"
+    useReferences:
+          type: number
+          description: "day"
+    active:
+          type: number
+          description: "day"
+    deletedDate:
+          type: string
+          description: "day"
+    editRate:
+          type: number
+          description: "day"
+    useDigitalSignature:
+          type: number
+          description: "day"
+    pctResidualInterest:
+          type: string
+          description: "day"
+    whiteList:
+          type: number
+          description: "day"
+    installmentStep:
+          type: number
+          description: "day"
+    financeExpenses:
+          type: number
+          description: "day"
+    useCollection:
+          type: number
+          description: "day"
+    graceType:
+          type: string
+          description: "day"
+    graceTerm: 
+          type: number
+          description: "day"
+    graceDelay:
+          type: number
+          description: "day"
+    installmentCollectionService:
+          type: strong
+          description: "day"
+    paymentTypeService:
+          type: string
+          description: "day"
+    limitMaxAmount:
+          type: number
+          description: "day"
+    scoreLibrary:
+          type: number
+          description: "day"
+    externalLibrary:
+          type: number
+          description: "day"
+    internalLibrary:
+          type: number
+          description: "day"
+    repaymentLibrary: 
+          type: number
+          description: "day"
+    expired: 
+          type: boolean
+          description: "day"
+    needDocuments:
+          type: boolean
+          description: "day"
+    needSelds:
+          type: boolean
+          description: "day"
+    needFirstDate:
+          type: boolean
+          description: "day"
+    needAddressReceipt:
+          type: boolean
+          description: "day"
+    needIncomesReceipt:
+          type: boolean
+          description: "day"
+
+    repaymentType":
+          type: number
+          description: "day"
+
+    profile: 
+      type: object
+
+    validation:
+      type: object
+
+    termType:
+      type: object
+      id:
+        type: number
+        description: "day"
+      name:
+        type: string
+        description: "day"
+      months:
+        type: number
+        description: "day"
+      days:
+        type: number
+        description: "day"
+      weeks:
+        type: number
+        description: "day"
+      default:
+        type: number
+        description: "day"
+      createdAt:
+        type: string
+        description: "day"
+      updatedAt:
+        type: string
+        description: "day"
+      deletedAt:
+        type: string
+        description: "day"
+      isFixedDate:
+        type: string
+        description: "day"
+      annualBase:
+        type: string
+        description: "day"
+    interval:
+      type: object
+
+      intervalUnits:
+          type: string
+          description: "day"
+      intervalMonths:
+          type: string
+          description: "day"
+   
+
+
+
+    conditions:
+      type: object
+
+    score:
+      type: object
+    externalBureau:
+      type: object
+    internalBureau:
+      type: object
+
+  # editing    
+    repayment:
+      type: object
+
+      id:
+          type: number
+          description: "Payment Id"
+
+      profileCustomId:
+          type: number
+          description: "Payment Profile Custom Id"
+
+      serviceId:
+          type: number
+          description: "Payment Service Id"
+      validation:
+          type: string
+          description: "Payment Validation"
+
+      createdAt:
+          type: string
+          description: "Payment Created At"
+      updatedAt:
+          type: string
+          description: "Payment Updated At"
+      libraryName:
+          type: string
+          description: "Payment Library Name"
+      allowValidation:
+          type: number
+          description: "Payment Allow Validation"
+
+    credentials:
+      type: object
+
+      rules:
+          type: number
+          description: "Payment rules"
+
+    mandatoryFields: 
+      type: object
+
+      countryIso:
+          type: string
+          description: "Country Iso"
+      responseType:
+          type: string
+          description: "Response Type"
+      score": 
+          type: number
+          description: "Score"
+
+
+          # uneditted
+          
+          
+    maritalStatusResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          statusId:
+            type: number
+          name:
+            type: string
+    propertyTypesResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          propertyTypeId:
+            type: number
+          name:
+            type: string
+    studiesResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          studyId:
+            type: number
+          name:
+            type: string
+    employmentRelationshipsResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          employmentRelationshipId:
+            type: number
+          name:
+            type: string
+    departmentsResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          departmentId:
+            type: number
+          name:
+            type: string
+    locationsResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          locationId:
+            type: number
+          name:
+            type: string
+    additionalProposals:
+      type: object
+      properties:
+        amounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/additionalAmount"
+        installments:
+          type: array
+          items:
+            $ref: "#/components/schemas/additionalInstallment"
+    expirationType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        parse:
+          type: string
+        dateVariable:
+          type: string
+          format: date-time
+        unit:
+          type: string
+    termType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        months:
+          type: integer
+        days:
+          type: integer
+        weeks:
+          type: integer
+        default:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: string
+          format: date-time
+        isFixedDate:
+          type: string
+          format: date-time
+        annualBase:
+          type: integer
+        interval:
+          type: object
+        intervalUnits:
+          type: string
+        intervalMonths:
+          type: integer
+    repayment:
+      type: object
+      properties:
+        id:
+          type: integer
+        profileCustomId:
+          type: integer
+        serviceId:
+          type: integer
+        validation:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        libraryName:
+          type: string
+        allowValidation:
+          type: integer
+        credentials:
+          type: object
+        rules:
+          type: string
+        mandatoryFields:
+          type: object
+        type:
+          type: string
+        countryIso:
+          type: string
+        responseType:
+          type: string
+        score:
+          type: string
+    additionalAmount:
+      type: object
+      properties:
+        amount:
+          type: number
+        installment:
+          type: number
+        installmentAmount:
+          type: number
+    additionalInstallment:
+      type: object
+      properties:
+        amount:
+          type: number
+        installment:
+          type: number
+        installmentAmount:
+          type: number
+    amount:
+      maxLength: 23
+      minLength: 1
+      pattern: ^([0]|([1-9][0-9]{0,17}))([.][0-9]{0,3}[1-9])?$
+      type: number
+      example: 15.21
+    loanRequestStatus:
+      type: string
+      enum:
+        - CREATED
+        - FINISHED
+        - DENIED
+    currency:
+      type: string
+      enum:
+        - AED
+        - AFN
+        - ALL
+        - AMD
+        - ANG
+        - AOA
+        - ARS
+        - AUD
+        - AWG
+        - AZN
+        - BAM
+        - BBD
+        - BDT
+        - BGN
+        - BHD
+        - BIF
+        - BMD
+        - BND
+        - BOB
+        - BOV
+        - BRL
+        - BSD
+        - BTN
+        - BWP
+        - BYN
+        - BZD
+        - CAD
+        - CDF
+        - CHE
+        - CHF
+        - CHW
+        - CLF
+        - CLP
+        - CNY
+        - COP
+        - COU
+        - CRC
+        - CUC
+        - CUP
+        - CVE
+        - CZK
+        - DJF
+        - DKK
+        - DOP
+        - DZD
+        - EGP
+        - ERN
+        - ETB
+        - EUR
+        - FJD
+        - FKP
+        - GBP
+        - GEL
+        - GHS
+        - GIP
+        - GMD
+        - GNF
+        - GTQ
+        - GYD
+        - HKD
+        - HNL
+        - HRK
+        - HTG
+        - HUF
+        - IDR
+        - ILS
+        - INR
+        - IQD
+        - IRR
+        - ISK
+        - JMD
+        - JOD
+        - JPY
+        - KES
+        - KGS
+        - KHR
+        - KMF
+        - KPW
+        - KRW
+        - KWD
+        - KYD
+        - KZT
+        - LAK
+        - LBP
+        - LKR
+        - LRD
+        - LSL
+        - LYD
+        - MAD
+        - MDL
+        - MGA
+        - MKD
+        - MMK
+        - MNT
+        - MOP
+        - MRO
+        - MUR
+        - MVR
+        - MWK
+        - MXN
+        - MXV
+        - MYR
+        - MZN
+        - NAD
+        - NGN
+        - NIO
+        - NOK
+        - NPR
+        - NZD
+        - OMR
+        - PAB
+        - PEN
+        - PGK
+        - PHP
+        - PKR
+        - PLN
+        - PYG
+        - QAR
+        - RON
+        - RSD
+        - RUB
+        - RWF
+        - SAR
+        - SBD
+        - SCR
+        - SDG
+        - SEK
+        - SGD
+        - SHP
+        - SLL
+        - SOS
+        - SRD
+        - SSP
+        - STD
+        - SVC
+        - SYP
+        - SZL
+        - THB
+        - TJS
+        - TMT
+        - TND
+        - TOP
+        - TRY
+        - TTD
+        - TWD
+        - TZS
+        - UAH
+        - UGX
+        - USD
+        - USN
+        - UYI
+        - UYU
+        - UZS
+        - VEF
+        - VND
+        - VUV
+        - WST
+        - XAF
+        - XAG
+        - XAU
+        - XBA
+        - XBB
+        - XBC
+        - XBD
+        - XCD
+        - XDR
+        - XOF
+        - XPD
+        - XPF
+        - XPT
+        - XSU
+        - XTS
+        - XUA
+        - XXX
+        - YER
+        - ZAR
+        - ZMW
+        - ZWL
+    StatusActionEnum:
+      type: string
+      enum:
+        - ACCEPT
+        - FINALIZE
+        - DISBURSE
+    LoanRequestStatusEnum:
+      type: string
+      enum:
+        - INITIAL
+        - ACTIVE
+        - PENDING
+        - IN_PROGRESS
+        - PENDING_DISBURSEMENT
+        - CONFIRMED
+        - FINISHED
+        - REJECTED
+    CountryCodeEnum:
+      type: string
+      enum:
+        - AD
+        - AE
+        - AF
+        - AG
+        - AI
+        - AL
+        - AM
+        - AO
+        - AQ
+        - AR
+        - AS
+        - AT
+        - AU
+        - AW
+        - AX
+        - AZ
+        - BA
+        - BB
+        - BD
+        - BE
+        - BF
+        - BG
+        - BH
+        - BI
+        - BJ
+        - BL
+        - BM
+        - BN
+        - BO
+        - BQ
+        - BQ
+        - BR
+        - BS
+        - BT
+        - BV
+        - BW
+        - BY
+        - BZ
+        - CA
+        - CC
+        - CD
+        - CF
+        - CG
+        - CH
+        - CI
+        - CK
+        - CL
+        - CM
+        - CN
+        - CO
+        - CR
+        - CU
+        - CV
+        - CW
+        - CX
+        - CY
+        - CZ
+        - DE
+        - DJ
+        - DK
+        - DM
+        - DO
+        - DZ
+        - EC
+        - EE
+        - EG
+        - EH
+        - ER
+        - ES
+        - ET
+        - FI
+        - FJ
+        - FK
+        - FM
+        - FO
+        - FR
+        - GA
+        - GB
+        - GD
+        - GE
+        - GF
+        - GG
+        - GH
+        - GI
+        - GL
+        - GM
+        - GN
+        - GP
+        - GQ
+        - GR
+        - GS
+        - GT
+        - GU
+        - GW
+        - GY
+        - HK
+        - HM
+        - HN
+        - HR
+        - HT
+        - HU
+        - ID
+        - IE
+        - IL
+        - IM
+        - IN
+        - IO
+        - IQ
+        - IR
+        - IS
+        - IT
+        - JE
+        - JM
+        - JO
+        - JP
+        - KE
+        - KG
+        - KH
+        - KI
+        - KM
+        - KN
+        - KP
+        - KR
+        - KW
+        - KY
+        - KZ
+        - LA
+        - LB
+        - LC
+        - LI
+        - LK
+        - LR
+        - LS
+        - LT
+        - LU
+        - LV
+        - LY
+        - MA
+        - MC
+        - MD
+        - ME
+        - MF
+        - MG
+        - MH
+        - MK
+        - ML
+        - MM
+        - MN
+        - MO
+        - MP
+        - MQ
+        - MR
+        - MS
+        - MT
+        - MU
+        - MV
+        - MW
+        - MX
+        - MY
+        - MZ
+        - NA
+        - NC
+        - NE
+        - NF
+        - NG
+        - NI
+        - NP
+        - NR
+        - NU
+        - NZ
+        - OM
+        - PA
+        - PE
+        - PF
+        - PG
+        - PH
+        - PK
+        - PL
+        - PM
+        - PN
+        - PR
+        - PS
+        - PT
+        - PW
+        - PY
+        - QA
+        - RE
+        - RO
+        - RS
+        - RU
+        - RW
+        - SA
+        - SB
+        - SC
+        - SD
+        - SE
+        - SG
+        - SH
+        - SI
+        - SJ
+        - SK
+        - SL
+        - SM
+        - SN
+        - SO
+        - SR
+        - SS
+        - ST
+        - SV
+        - SX
+        - SY
+        - SZ
+        - TC
+        - TD
+        - TF
+        - TG
+        - TH
+        - TJ
+        - TK
+        - TL
+        - TM
+        - TN
+        - TO
+        - TR
+        - TT
+        - TV
+        - TW
+        - TZ
+        - UA
+        - UG
+        - US
+        - UY
+        - UZ
+        - VA
+        - VC
+        - VE
+        - VG
+        - VI
+        - VN
+        - VU
+        - WF
+        - WS
+        - YE
+        - YT
+        - ZA
+        - ZM
+        - ZW
+    FileTypeEnum:
+      type: number
+      description: File Type
+      enum:
+        - 1
+        - 2
+        - 3
+        - 4
+    genericObject:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Harmonised error code identifying the error reason.
+        description:
+          maxLength: 256
+          minLength: 0
+          type: string
+          description: Consists of a text error."
+    installmentsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/installmentItemResponse"
+    installmentItemResponse:
+      type: object
+      properties:
+        installmentId:
+          type: "string"
+          example: "2Q-1"
+        dueDate:
+          type: "string"
+        installmentAmount:
+          type: "string"
+        capitalAmount:
+          type: "string"
+        interestAmount:
+          type: "string"
+        amortizationAmount:
+          type: "string"
+        otherExpenses:
+          type: "string"
+        amountPayable:
+          type: "string"
+        status:
+          type: "string"
+          example: "Pagada"
+        paymentDate:
+          type: "string"
+    disburseResponse:
+      type: object
+      properties:
+        loan:
+          $ref: "#/components/schemas/loanDisburse"
+        success:
+          type: "integer"
+          example: 0
+    loanDisburse:
+      $ref: "#/components/schemas/loanItemDisbursement"
+    disbursementResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/loanItemDisbursement"
+    loanItemDisbursement:
+      type: object
+      properties:
+        identifier:
+          type: "string"
+          example: "1"
+        proofType:
+          type: "string"
+        numberInstallmentsToBeCharged:
+          type: "integer"
+        totalInstallments:
+          type: "integer"
+        amount:
+          type: "string"
+        currency:
+          $ref: "#/components/schemas/currency"
+        isoCurrency:
+          $ref: "#/components/schemas/currency"
+        availableAmount:
+          type: "string"
+    loanResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/loanItemResponse"
+    loanItemResponse:
+      type: object
+      properties:
+        loanId:
+          type: string
+          example: 1
+        productName:
+          type: string
+          example: "Persona Pesos-Mensual"
+        status:
+          type: string
+          example: "Activo"
+        requestedAmount:
+          type: string
+        approvedAmount:
+          type: string
+        availableAmount:
+          type: string
+        currency:
+          $ref: "#/components/schemas/currency"
+        numberOfInstallments:
+          type: integer
+          example: 6
+        termType:
+          type: string
+        installmentAmount:
+          type: string
+        tea:
+          type: string
+        LOAN:
+          type: string
+        company:
+          type: string
+        nextDueDate:
+          type: string
+    loanRequestsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/loanRequestItemResponse"
+    loanRequestItemResponse:
+      type: object
+      properties:
+        loanRequestId:
+          type: number
+        productName:
+          type: string
+        status:
+          type: string
+        requestedAmount:
+          type: string
+        approvedAmount:
+          type: string
+        currency:
+          $ref: "#/components/schemas/currency"
+        numberOfInstallments:
+          type: integer
+        termType:
+          type: string
+        installmentAmount:
+          type: integer
+        tea:
+          type: string
+        LOAN:
+          type: string
+        company:
+          $ref: "#/components/schemas/company"
+        nextDueDate:
+          type: string
+    company:
+      type: object
+      properties:
+        fantasyName:
+          type: string
+        documentType:
+          type: string
+        documentNumber:
+          type: string
+        address:
+          type: string
+        companyName:
+          type: string
+    loanRequestStatusResponse:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/loanRequestStatus"
+    simulateLoanResponse:
+      required:
+        - amount
+        - commission
+        - cost
+        - forecast
+        - installmentAmount
+        - installmentCount
+        - installmentPaymentDate
+        - insurance
+        - management
+        - taxes
+        - tea
+      type: object
+      properties:
+        installmentCount:
+          type: number
+        amount:
+          type: number
+        installmentAmount:
+          type: number
+        installmentPaymentDate:
+          type: string
+          format: date-time
+        cost:
+          type: number
+        management:
+          type: string
+        forecast:
+          type: string
+        insurance:
+          type: string
+        commission:
+          type: number
+        taxes:
+          type: string
+        tea:
+          type: string
+        delay:
+          type: string
+        currency:
+          type: string
+        daysTerm:
+          type: number
+        LOAN:
+          type: number
+        financialExpenses:
+          type: number
+        availableAmount:
+          type: number
+        paymentCommission:
+          type: number
+        applicantCommission:
+          type: number
+        providerCommission:
+          type: number
+        porcApplicant:
+          type: string
+        porcCommissionProvider:
+          type: number
+        totalInsurance:
+          type: string
+        grantCost:
+          type: string
+        annualDelay:
+          type: string
+        pctResidualLOAN:
+          type: string
+        residualLOAN:
+          type: number
+        pctAdvance:
+          type: string
+        pctResidual:
+          type: string
+        advanceAmount:
+          type: number
+        residualAmount:
+          type: number
+    documentsResponse:
+      type: object
+      properties:
+        loanRequestId:
+          type: string
+          example: "61"
+        type:
+          type: string
+          example: "4"
+        url:
+          type: string
+        message:
+          type: string
+          example: Data retrieved successfully
+    loanRequestPostResponse:
+      type: object
+      properties:
+        loanRequestId:
+          type: number
+        installmentsCount:
+          type: number
+        amount:
+          type: number
+        installmentAmount:
+          type: number
+        installmentPaymentDate:
+          type: string
+          format: date-time
+        cost:
+          type: string
+        management:
+          type: string
+        forecast:
+          type: number
+        commission:
+          type: string
+        taxes:
+          type: string
+        effectiveAnnualRate:
+          type: string
+        additionals:
+          $ref: "#/components/schemas/additionalProposals"
+    confirmProposalResponse:
+      type: object
+      properties:
+        installmentAmount:
+          type: number
+          example: 32210.9238
+    product_productId_body:
+      required:
+        - amount
+        - installments
+      type: object
+      properties:
+        installments:
+          type: integer
+          example: 10
+        amount:
+          $ref: "#/components/schemas/amount"
+    revert_body:
+      required:
+        - transactionId
+      type: object
+      properties:
+        transactionId:
+          type: string
+          example: 8564539
+    pay_body:
+      required:
+        - transactionReference
+      type: object
+      properties:
+        transactionReference:
+          type: string
+    loanRequest_body:
+      required:
+        - amount
+        - installments
+        - maxInstallment
+        - productId
+        - Address
+      type: object
+      properties:
+        address:
+          type: object
+          properties:
+            departmentId:
+              type: integer
+            locationId:
+              type: integer
+            address:
+              type: string
+            postalCode:
+              type: string
+        maxInstallment:
+          type: number
+        amount:
+          $ref: "#/components/schemas/amount"
+        installments:
+          type: integer
+        productId:
+          type: integer
+          example: 1
+    loanRequestStatusBody:
+      required:
+        - status
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/StatusActionEnum"
+    loanRequestId_accept_body:
+      required:
+        - amount
+        - installments
+        - original
+      type: object
+      properties:
+        amount:
+          $ref: "#/components/schemas/amount"
+        installments:
+          type: integer
+          example: 14
+        original:
+          type: integer
+          example: 1
+    applicant:
+      type: object
+      properties:
+        documentTypeId:
+          type: integer
+          example: 0
+        documentId:
+          type: string
+          example: "36636102"
+        personType:
+          type: string
+        names:
+          type: string
+        lastNames:
+          type: string
+    installmentId_pay_body:
+      required:
+        - documentType
+        - documentNumber
+        - amount
+        - transactionId
+      type: object
+      properties:
+        amount:
+          $ref: "#/components/schemas/amount"
+        documentType:
+          type: string
+          example: "1"
+        documentNumber:
+          type: string
+          example: "34453004"
+        transactionId:
+          type: string
+          example: "1004"
+    disburse_body:
+      type: object
+      properties:
+        applicant:
+          $ref: "#/components/schemas/applicant"
+        loans:
+          type: string
+        success:
+          type: integer
+          example: 0
+    documents_body:
+      required:
+        - file
+        - documentTypeId
+      type: object
+      properties:
+        file:
+          type: string
+          description: Binary Document representation
+          format: binary
+        documentTypeId:
+          type: integer
+          example: 1
+          description: Identifier of the document type
+  parameters:
+    X-CorrelationID:
+      name: X-CorrelationID
+      in: header
+      description: Header parameter to uniquely identify the request. Must be supplied as an UUID.
+      required: false
+      style: simple
+      explode: false
+      schema:
+        pattern: ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$
+        type: string
+    X-Date:
+      name: X-Date
+      in: header
+      description: Header parameter that informs the date and time when the message was originated. It is used for basic message integrity checks, to ensure the request is not stale. Note that the header was previously referenced as 'Date' in version 1.0 of the Mobile Money API.
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+        format: date-time
+    apikey:
+      name: apikey
+      in: header
+      description: It is used to send the pre-shared client's API key to the server.
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+    X-User-Bearer:
+      name: X-User-Bearer
+      in: header
+      description: It is used to send the user’s access token when OAuth 2.0/OIDC authorization framework is used for end-user authentication.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    X-Channel:
+      name: X-Channel
+      in: header
+      description: String containing the channel used to originate the request. For example USSD, Web, App.
+      required: false
+      style: simple
+      explode: false
+      schema:
+        maxLength: 256
+        type: string
+    documentNumber:
+      name: documentNumber
+      in: query
+      required: true
+      style: form
+      explode: true
+      schema:
+        type: string
+    loanRequestId:
+      name: loanRequestId
+      in: path
+      description: Identifies the loan request.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    transactionTypePath:
+      name: transactionType
+      in: path
+      description: Identifies the type of transaction to be created.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+        enum:
+          - billpay
+          - deposit
+          - disbursement
+          - transfer
+          - merchantpay
+          - inttransfer
+          - adjustment
+          - reversal
+          - withdrawal
+
+    installmentId:
+      name: installmentId
+      in: path
+      description: Installment identifier.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        maxLength: 256
+        type: string
+
+    limit:
+      name: limit
+      in: query
+      description: Supports pagination. If this is not supplied, the server will apply a limit of 50 records returned per request.
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+    offset:
+      name: offset
+      in: query
+      description: Supports pagination. This value will indicate the cursor position from where to retrieve the set of records. For example, a limit of 50 and an offset of 10 will return records from 11 to 60.
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+  headers:
+    X-Date:
+      description: Date and time when the response message was sent.
+      style: simple
+      explode: false
+      schema:
+        type: string
+        format: date-time
+    X-Records-Available-Count:
+      description: Integer containing the number of records available to be returned.
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int32
+    X-Records-Returned-Count:
+      description: Integer containing the number of records to be returned.
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int32
